@@ -1,1 +1,1 @@
-# sf_coding_class
+# sf_coding_class_project
