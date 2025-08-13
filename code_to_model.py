@@ -7,7 +7,7 @@ from keras.models import load_model
 from keras.applications.resnet_v2 import preprocess_input
 from PIL import Image
 
-def run model(image_path):
+def run_model(image_path):
     # Load the pre-trained model
     model_path = os.path.join(os.path.dirname(__file__), 'dog_breed_identifier_model.h5')
     model = load_model(model_path)
@@ -32,7 +32,7 @@ def run model(image_path):
     predicted_breed_index = np.argmax(predictions[0])
     predicted_breed = breed_labels[str(predicted_breed_index)]
 
-    return predicted_breedage_path):
+    return predicted_breedage_path
     # This function will be called to identify the dog breed from an image
 def identify_dog_breed(image_path):
     try:
@@ -41,4 +41,4 @@ def identify_dog_breed(image_path):
     except Exception as e:
         return f"An error occurred: {str(e)}"
 
-identify_dog_breed("./dog_pictures/BMDog1.jpg")
+identify_dog_breed("./dog_pictures/labrador/lab6.jpg")
