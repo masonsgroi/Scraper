@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd 
 from tensorflow import keras
 import tf_keras as k3
+from sklearn.preprocessing import LabelEncoder
 
 
 from keras.models import load_model
@@ -46,6 +47,7 @@ def test_model(image_path):
         raise FileNotFoundError(f"Image path {image_path} does not exist.")
     
     from keras.layers import TFSMLayer
+    encoder = LabelEncoder()
 
     # Replace with the correct call_endpoint if different
     # model = TFSMLayer('./model', call_endpoint='serving_default')
@@ -67,9 +69,14 @@ def test_model(image_path):
 
     pred_label = np.argmax(pred_label, axis=1)
 
-    # Make sure encoder is defined and fitted elsewhere in your code
+    print("Predicted Label for this Dog is :", pred_label)
+
+    # match the encoder to the labels csv file
+    labels_df = pd.read_csv('./labels.csv')
+    encoder.fit(labels_df['breed'].values)
     pred_breed = encoder.inverse_transform(pred_label)
     print("Predicted Breed for this Dog is :", pred_breed)
     
-    
-test_model('./dog_pictures/BMDog5.jpg')
+
+test_image = './dog_pictures/germanShep4.jpg'
+test_model(test_image)
