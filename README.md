@@ -122,7 +122,7 @@ docker ps
 docker logs dog-breed-classifier
 
 # Stop all containers
-docker-compose down
+docker compose down
 
 # Remove all images
 docker system prune -a
