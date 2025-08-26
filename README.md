@@ -28,7 +28,7 @@ sf_coding_class_project/
 
 1. **Build and run the main service:**
    ```bash
-   docker-compose up dog-breed-classifier
+   docker compose up dog-breed-classifier
    ```
 
 2. **Run with Jupyter Lab for development:**
