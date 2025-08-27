@@ -78,5 +78,5 @@ def test_model(image_path):
     print("Predicted Breed for this Dog is :", pred_breed)
     
 
-test_image = './dog_pictures/germanShep4.jpg'
+test_image = './dog_pictures/german_shepherd/germanShep4.jpg'
 test_model(test_image)
