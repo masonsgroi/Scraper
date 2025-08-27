@@ -1,0 +1,33 @@
+services:
+  dog-breed-classifier:
+    build: .
+    container_name: dog-breed-classifier
+    volumes:
+      # Mount the dog_pictures directory for easy access to test images
+      - ./dog_pictures:/app/dog_pictures:ro
+      # Mount the model directory if you have a trained model
+      - ./model:/app/model:ro
+      # Mount labels.csv
+      - ./labels.csv:/app/labels.csv:ro
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "8000:8000"
+    # For development, you can override the command
+    # command: ["python", "-c", "import model_interface; print('Container ready!')"]
+    
+  # Optional: Add a Jupyter notebook service for development
+  jupyter:
+    build: .
+    container_name: dog-breed-jupyter
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./dog_pictures:/app/dog_pictures:ro
+      - ./model:/app/model:ro
+      - ./labels.csv:/app/labels.csv:ro
+      - ./notebooks:/app/notebooks
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    command: ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''"]
