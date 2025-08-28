@@ -33,13 +33,13 @@ sf_coding_class_project/
 
 2. **Run with Jupyter Lab for development:**
    ```bash
-   docker-compose up jupyter
+   docker compose up jupyter
    ```
    Then open http://localhost:8888 in your browser.
 
 3. **Run all services:**
    ```bash
-   docker-compose up
+   docker compose up
    ```
 
 ### Option 2: Using Docker directly
@@ -60,14 +60,8 @@ chmod +x scripts/run_docker.sh
 # Build the image
 docker build -t dog-breed-classifier .
 
-# Run the container
-docker run --rm -it \
-  -v "$(pwd)/dog_pictures:/app/dog_pictures:ro" \
-  -v "$(pwd)/model:/app/model:ro" \
-  -v "$(pwd)/labels.csv:/app/labels.csv:ro" \
-  -p 8000:8000 \
-  dog-breed-classifier
-```
+# Run the container and execute model_interface.py
+docker run --rm -it -v "$(pwd)":/app dog-breed-classifier python model_interface.py
 
 ## Development Setup
 
@@ -133,3 +127,4 @@ docker system prune -a
 1. Make changes to your code
 2. Rebuild the Docker image: `docker-compose build`
 3. Test your changes: `docker-compose up`
+

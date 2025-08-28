@@ -76,7 +76,8 @@ def test_model(image_path):
     encoder.fit(labels_df['breed'].values)
     pred_breed = encoder.inverse_transform(pred_label)
     print("Predicted Breed for this Dog is :", pred_breed)
+    return pred_breed[0]
     
 
-test_image = './dog_pictures/germanShep4.jpg'
+test_image = './dog_pictures/german_shepherd/germanShep4.jpg'
 test_model(test_image)
