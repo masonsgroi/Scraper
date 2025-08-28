@@ -18,11 +18,12 @@ async def infer_picture(file: UploadFile = File(...)):
         f.write(contents)
     try:
         from model_interface import test_model
-        test_model(temp_filename)
+        prediction = test_model(temp_filename)
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         if os.path.exists(temp_filename):
             os.remove(temp_filename)
-    result = {"message": "Inference completed", "filename": file.filename}
+    result = {"message": f"Inference completed: {prediction}", "filename": file.filename}
     return JSONResponse(content=result)

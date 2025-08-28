@@ -14,23 +14,7 @@ from keras.applications.resnet_v2 import preprocess_input
 from PIL import Image
 
 
-# def load_model(model_path):
-#     """
-#     Load the dog breed identification model from the specified path.
-    
-#     Args:
-#         model_path (str): Path to the model directory.
-    
-#     Returns:
-#         dict: Model configuration and parameters.
-#     """
-#     if not os.path.exists(model_path):
-#         raise FileNotFoundError(f"Model path {model_path} does not exist.")
-    
-#     with open(os.path.join(model_path, 'model_config.json'), 'r') as f:
-#         model_config = json.load(f)
-    
-#     return model_config
+
 
 def test_model(image_path):
     """
@@ -76,6 +60,7 @@ def test_model(image_path):
     encoder.fit(labels_df['breed'].values)
     pred_breed = encoder.inverse_transform(pred_label)
     print("Predicted Breed for this Dog is :", pred_breed)
+    return pred_breed[0]
     
 
 test_image = './dog_pictures/german_shepherd/germanShep4.jpg'
