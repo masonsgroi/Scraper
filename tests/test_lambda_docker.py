@@ -56,11 +56,11 @@ def test_lambda_docker_image():
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
         
         response_data = response.json()
-        # With dummy credentials, S3 call will fail, so we expect 500
+        # With dummy credentials, scraper will fail (network or auth error)
         # The important thing is the Lambda container runs and handles errors gracefully
         assert response_data["statusCode"] == 500, f"Lambda returned statusCode {response_data['statusCode']}"
-        assert "Failed to write to S3:" in response_data["body"], \
-            f"Expected S3 error in body, got: {response_data['body']}"
+        assert "Scraper failed:" in response_data["body"], \
+            f"Expected scraper error in body, got: {response_data['body']}"
         
         # Check container logs - should show the error was logged
         result = subprocess.run(
@@ -68,7 +68,7 @@ def test_lambda_docker_image():
             capture_output=True,
             text=True
         )
-        assert "ERROR: Failed to write to S3:" in result.stdout, \
+        assert "ERROR: Scraper failed:" in result.stdout, \
             "Expected error log message not found"
         
         print("✅ Lambda Docker test passed")

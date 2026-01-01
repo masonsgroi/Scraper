@@ -61,7 +61,7 @@ def test_lambda_function_exists():
         response = lambda_client.get_function(FunctionName='scraper')
         assert response['Configuration']['FunctionName'] == 'scraper'
         assert response['Configuration']['PackageType'] == 'Image'
-        assert response['Configuration']['Timeout'] == 60
+        assert response['Configuration']['Timeout'] == 300
         assert response['Configuration']['MemorySize'] == 512
         print("✅ Lambda function exists with correct configuration")
     except ClientError as e:
@@ -88,10 +88,12 @@ def test_lambda_invocation():
     payload = json.loads(response['Payload'].read())
     assert payload['statusCode'] == 200, f"Expected statusCode 200, got {payload['statusCode']}"
     
-    # Check that response indicates S3 write success
+    # Check that response indicates scraper completed successfully
     bucket_name = get_terraform_output('s3_bucket_name')
-    assert f'Timestamp written to s3://{bucket_name}/timestamps/' in payload['body'], \
-        f"Expected S3 write success message, got '{payload['body']}'"
+    assert 'Scraper completed' in payload['body'], \
+        f"Expected 'Scraper completed' in response, got '{payload['body']}'"
+    assert 'lifts' in payload['body'], \
+        f"Expected lift count in response, got '{payload['body']}'"
     
     print("✅ Lambda function invoked successfully")
     print(f"   Response: {payload['body']}")
@@ -123,14 +125,15 @@ def test_lambda_logs():
         events_response = logs_client.get_log_events(
             logGroupName=log_group,
             logStreamName=log_stream_name,
-            limit=50
+            limit=100
         )
         
-        # Check for our expected log message (S3 write success)
+        # Check for our expected log messages (scraper execution)
         log_messages = [event['message'] for event in events_response['events']]
-        bucket_name = get_terraform_output('s3_bucket_name')
-        assert any(f'Timestamp written to s3://{bucket_name}/timestamps/' in msg for msg in log_messages), \
-            "Expected log message about S3 write not found in CloudWatch logs"
+        assert any('Scraper version' in msg for msg in log_messages), \
+            "Expected 'Scraper version' log message not found in CloudWatch logs"
+        assert any('Scraper completed' in msg for msg in log_messages), \
+            "Expected 'Scraper completed' log message not found in CloudWatch logs"
         
         print("✅ Lambda function logs to CloudWatch correctly")
         
@@ -254,49 +257,59 @@ def test_lambda_has_s3_environment_variable():
 
 
 def test_s3_file_content():
-    """Test that Lambda writes correct content to S3 and verify by downloading"""
+    """Test that Lambda writes correct CSV content to S3 and verify by downloading"""
     lambda_client = boto3.client('lambda', region_name='us-west-2')
     s3_client = boto3.client('s3', region_name='us-west-2')
     
     bucket_name = get_terraform_output('s3_bucket_name')
     
-    # Invoke Lambda to create a new timestamp file
+    # Invoke Lambda to create new CSV files
     response = lambda_client.invoke(
         FunctionName='scraper',
         InvocationType='RequestResponse',
         Payload=json.dumps({})
     )
     
-    # Parse response to get the S3 key
+    # Parse response
     payload = json.loads(response['Payload'].read())
     assert payload['statusCode'] == 200, f"Lambda invocation failed: {payload}"
     
-    # Extract S3 key from response body
-    # Example: "Timestamp written to s3://bucket-name/timestamps/2026-01-01T19:57:55.012744+00:00.txt"
-    body = payload['body']
-    assert 'timestamps/' in body, f"Expected S3 path in response, got: {body}"
+    # Wait a moment for S3 to be consistent
+    time.sleep(2)
     
-    # Extract key from the message
-    s3_key = body.split('timestamps/')[1].split('"')[0].strip()
-    s3_key = f"timestamps/{s3_key}"
-    
-    # Download the file from S3
+    # List files in data/ folder to find the most recent ones
     try:
-        obj_response = s3_client.get_object(Bucket=bucket_name, Key=s3_key)
-        file_content = obj_response['Body'].read().decode('utf-8')
+        list_response = s3_client.list_objects_v2(
+            Bucket=bucket_name,
+            Prefix='data/',
+            MaxKeys=10
+        )
         
-        # Verify content is a valid ISO format timestamp
-        assert len(file_content) > 0, "File content is empty"
-        assert 'T' in file_content, "Content doesn't look like an ISO timestamp"
-        assert file_content.strip() in s3_key, \
-            f"Timestamp in file '{file_content.strip()}' doesn't match key '{s3_key}'"
+        assert 'Contents' in list_response, "No files found in data/ folder"
         
-        print(f"✅ S3 file verified: {s3_key}")
-        print(f"   Content: {file_content.strip()}")
+        # Get the most recent status file
+        status_files = [obj for obj in list_response['Contents'] if 'status_' in obj['Key']]
+        assert len(status_files) > 0, "No status files found"
+        
+        latest_status = sorted(status_files, key=lambda x: x['LastModified'], reverse=True)[0]
+        
+        # Download and verify the status CSV
+        obj_response = s3_client.get_object(Bucket=bucket_name, Key=latest_status['Key'])
+        csv_content = obj_response['Body'].read().decode('utf-8')
+        
+        # Verify CSV structure
+        assert 'Lift' in csv_content, "CSV doesn't contain 'Lift' column"
+        assert 'Status' in csv_content, "CSV doesn't contain 'Status' column"
+        lines = csv_content.strip().split('\n')
+        assert len(lines) > 1, "CSV file has no data rows"
+        
+        print(f"✅ S3 file verified: {latest_status['Key']}")
+        print(f"   Rows: {len(lines) - 1} (excluding header)")
+        print(f"   Preview: {lines[0]}")
         
     except ClientError as e:
-        if e.response['Error']['Code'] == 'NoSuchKey':
-            raise AssertionError(f"S3 file not found: {s3_key}")
+        if e.response['Error']['Code'] == 'NoSuchBucket':
+            raise AssertionError(f"S3 bucket not found: {bucket_name}")
         raise
 
 

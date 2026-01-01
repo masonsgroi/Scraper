@@ -67,7 +67,7 @@ resource "aws_lambda_function" "scraper" {
   role          = aws_iam_role.lambda_role.arn
   package_type  = "Image"
   image_uri     = "${aws_ecr_repository.scraper.repository_url}:latest"
-  timeout       = 60
+  timeout       = 300
   memory_size   = 512
 
   environment {
