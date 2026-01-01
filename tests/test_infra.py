@@ -135,6 +135,77 @@ def test_lambda_logs():
         raise
 
 
+def test_eventbridge_rule_exists():
+    """Test that EventBridge rule exists with correct configuration"""
+    events_client = boto3.client('events', region_name='us-west-2')
+    
+    try:
+        response = events_client.describe_rule(Name='scraper-hourly')
+        
+        assert response['Name'] == 'scraper-hourly'
+        assert response['State'] == 'ENABLED', f"Expected rule to be ENABLED, got {response['State']}"
+        assert response['ScheduleExpression'] == 'rate(1 minute)', \
+            f"Expected 'rate(1 minute)', got '{response['ScheduleExpression']}'"
+        
+        print("✅ EventBridge rule exists with correct configuration")
+        print(f"   Schedule: {response['ScheduleExpression']}")
+        print(f"   State: {response['State']}")
+        
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ResourceNotFoundException':
+            raise AssertionError("EventBridge rule 'scraper-hourly' not found")
+        raise
+
+
+def test_eventbridge_target_configured():
+    """Test that EventBridge rule has Lambda as target"""
+    events_client = boto3.client('events', region_name='us-west-2')
+    
+    try:
+        response = events_client.list_targets_by_rule(Rule='scraper-hourly')
+        
+        assert len(response['Targets']) == 1, \
+            f"Expected 1 target, found {len(response['Targets'])}"
+        
+        target = response['Targets'][0]
+        assert 'scraper' in target['Arn'], \
+            f"Expected Lambda ARN to contain 'scraper', got {target['Arn']}"
+        
+        print("✅ EventBridge target configured correctly")
+        print(f"   Target ARN: {target['Arn']}")
+        
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ResourceNotFoundException':
+            raise AssertionError("EventBridge rule 'scraper-hourly' not found")
+        raise
+
+
+def test_lambda_eventbridge_permission():
+    """Test that Lambda has permission for EventBridge to invoke it"""
+    lambda_client = boto3.client('lambda', region_name='us-west-2')
+    
+    try:
+        response = lambda_client.get_policy(FunctionName='scraper')
+        policy = json.loads(response['Policy'])
+        
+        # Check that there's a statement allowing EventBridge to invoke
+        eventbridge_permissions = [
+            stmt for stmt in policy['Statement']
+            if stmt.get('Principal', {}).get('Service') == 'events.amazonaws.com'
+            and stmt.get('Action') == 'lambda:InvokeFunction'
+        ]
+        
+        assert len(eventbridge_permissions) > 0, \
+            "No EventBridge invoke permission found in Lambda policy"
+        
+        print("✅ Lambda has EventBridge invoke permission")
+        
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ResourceNotFoundException':
+            raise AssertionError("Lambda function 'scraper' not found")
+        raise
+
+
 if __name__ == "__main__":
     print("Running infrastructure tests...\n")
     
@@ -144,6 +215,9 @@ if __name__ == "__main__":
         test_lambda_function_exists()
         test_lambda_invocation()
         test_lambda_logs()
+        test_eventbridge_rule_exists()
+        test_eventbridge_target_configured()
+        test_lambda_eventbridge_permission()
         
         print("\n🎉 All infrastructure tests passed!")
     except Exception as e:

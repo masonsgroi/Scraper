@@ -129,6 +129,13 @@ Remove Docker containers and images:
 make clean
 ```
 
+### View Lambda Logs
+
+Tail Lambda logs in real-time (requires AWS deployment):
+```bash
+make logs
+```
+
 ## Deployment Guide
 
 1. Read [scraper_design.md](docs/scraper_design.md) to understand what the scraper does

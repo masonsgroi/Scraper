@@ -156,7 +156,10 @@ terraform apply
 ### View Lambda Logs
 
 ```bash
-# Real-time logs (follow mode)
+# Quick shortcut: Real-time logs (follow mode)
+make logs
+
+# Or use AWS CLI directly:
 aws logs tail /aws/lambda/$(cd terraform && terraform output -raw lambda_function_name) --follow
 
 # Recent logs (last hour)

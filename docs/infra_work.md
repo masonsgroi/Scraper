@@ -9,10 +9,10 @@
 - [x] Step 1.6: Update Lambda with Image
 - [x] Step 1.7: Test Lambda Function
 
-### Phase 2: Add Scheduling
-- [ ] Step 2.1: Update Terraform Configuration
-- [ ] Step 2.2: Apply Terraform Changes
-- [ ] Step 2.3: Verify Scheduled Execution
+### Phase 2: Add Scheduling ✅
+- [x] Step 2.1: Update Terraform Configuration
+- [x] Step 2.2: Apply Terraform Changes
+- [x] Step 2.3: Verify Scheduled Execution
 
 ### Phase 3: Write Timestamp to S3
 - [ ] Step 3.1: Update Python Script

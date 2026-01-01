@@ -71,6 +71,34 @@ resource "aws_lambda_function" "scraper" {
   }
 }
 
+# EventBridge Rule for Minutely Schedule
+resource "aws_cloudwatch_event_rule" "scraper_hourly" {
+  name                = "scraper-hourly"
+  description         = "Trigger scraper Lambda function every minute"
+  schedule_expression = "rate(1 minute)"
+
+  tags = {
+    Name    = "scraper-hourly"
+    Project = "scraper"
+  }
+}
+
+# EventBridge Target: Point to Lambda Function
+resource "aws_cloudwatch_event_target" "scraper_lambda" {
+  rule      = aws_cloudwatch_event_rule.scraper_hourly.name
+  target_id = "scraper-lambda"
+  arn       = aws_lambda_function.scraper.arn
+}
+
+# Lambda Permission: Allow EventBridge to Invoke Lambda
+resource "aws_lambda_permission" "allow_eventbridge" {
+  statement_id  = "AllowExecutionFromEventBridge"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.scraper.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.scraper_hourly.arn
+}
+
 # Outputs
 output "ecr_repository_url" {
   description = "URL of the ECR repository"
@@ -80,5 +108,10 @@ output "ecr_repository_url" {
 output "lambda_function_name" {
   description = "Name of the Lambda function"
   value       = aws_lambda_function.scraper.function_name
+}
+
+output "eventbridge_rule_name" {
+  description = "Name of the EventBridge rule"
+  value       = aws_cloudwatch_event_rule.scraper_hourly.name
 }
 

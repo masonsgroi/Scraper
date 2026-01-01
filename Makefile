@@ -1,4 +1,4 @@
-.PHONY: setup test test-infra build push clean
+.PHONY: setup test test-infra build push clean logs
 
 # Install local development dependencies
 setup:
@@ -34,3 +34,8 @@ clean:
 	docker rm scraper-test-container 2>/dev/null || true
 	docker rmi scraper-test 2>/dev/null || true
 	@echo "Cleanup complete"
+
+# Tail Lambda logs in real-time
+logs:
+	@LAMBDA_NAME=$$(cd terraform && terraform output -raw lambda_function_name); \
+	aws logs tail /aws/lambda/$$LAMBDA_NAME --follow
