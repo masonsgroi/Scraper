@@ -3,6 +3,15 @@ import os
 from datetime import datetime, timezone
 
 
+def get_version():
+    """Read version from VERSION file"""
+    try:
+        with open('VERSION', 'r') as f:
+            return f.read().strip()
+    except Exception:
+        return 'unknown'
+
+
 def lambda_handler(event, context):
     """
     AWS Lambda handler function that writes a timestamp to S3.
@@ -14,6 +23,10 @@ def lambda_handler(event, context):
     Returns:
         dict: Response with statusCode and body
     """
+    # Get version
+    version = get_version()
+    print(f"Scraper version {version}")
+    
     # Get S3 bucket name from environment variable
     bucket_name = os.environ.get('S3_BUCKET')
     

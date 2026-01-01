@@ -14,6 +14,14 @@ test-infra:
 
 # Build Docker image for Lambda
 build:
+	@echo "Incrementing version..."
+	@VERSION=$$(cat VERSION); \
+	MAJOR=$$(echo $$VERSION | cut -d. -f1); \
+	MINOR=$$(echo $$VERSION | cut -d. -f2); \
+	NEW_MINOR=$$(($$MINOR + 1)); \
+	NEW_VERSION="$$MAJOR.$$NEW_MINOR"; \
+	echo $$NEW_VERSION > VERSION; \
+	echo "Building version $$NEW_VERSION..."
 	docker build -t scraper .
 
 # Push Docker image to ECR and update Lambda
