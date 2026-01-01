@@ -1,4 +1,4 @@
-.PHONY: setup test clean
+.PHONY: setup test test-infra build push clean
 
 # Install local development dependencies
 setup:
@@ -7,6 +7,25 @@ setup:
 # Run all tests
 test:
 	python3 -m pytest -v
+
+# Run infrastructure tests (AWS deployment verification)
+test-infra:
+	python3 -m pytest tests/test_infra.py -v -s
+
+# Build Docker image for Lambda
+build:
+	docker build -t scraper .
+
+# Push Docker image to ECR
+push: build
+	@ECR_URL=$$(cd terraform && terraform output -raw ecr_repository_url); \
+	echo "Logging into ECR..."; \
+	aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin $$ECR_URL; \
+	echo "Tagging image..."; \
+	docker tag scraper:latest $$ECR_URL:latest; \
+	echo "Pushing to ECR (with extended timeout)..."; \
+	DOCKER_CLIENT_TIMEOUT=600 docker push $$ECR_URL:latest; \
+	echo "✅ Image pushed to $$ECR_URL:latest"
 
 # Clean up Docker images and containers
 clean:

@@ -28,7 +28,7 @@ The scraper infrastructure is designed as a serverless, event-driven system usin
 
 1. **EventBridge** triggers Lambda on schedule (e.g., every hour)
 2. **Lambda** pulls Docker image from ECR and executes scraper code
-3. **Scraper** fetches data from Palisades Tahoe APIs
+3. **Scraper** fetches data from ski resort APIs
 4. **Lambda** writes CSV files to S3
 5. **CloudWatch** captures all logs automatically
 
@@ -130,7 +130,7 @@ The scraper infrastructure is designed as a serverless, event-driven system usin
 - S3 accessed via AWS internal network
 
 ### Data Security
-- Data in transit: HTTPS to Palisades APIs, AWS internal TLS to S3
+- Data in transit: HTTPS to resort APIs, AWS internal TLS to S3
 - Data at rest: S3 server-side encryption (enabled by default)
 - Logs: CloudWatch encrypted at rest
 

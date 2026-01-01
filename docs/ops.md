@@ -21,10 +21,29 @@ terraform --version
 
 **AWS CLI:**
 ```bash
-# Configure AWS credentials
+# Install AWS CLI
+brew install awscli  # macOS
+# or: pip3 install awscli
+
+# Configure AWS credentials (REQUIRED before Terraform operations)
 aws configure
-# Enter your AWS credentials when prompted (Access Key ID, Secret Access Key, region)
 ```
+
+**How to get AWS credentials:**
+1. Log into [AWS Console](https://console.aws.amazon.com/)
+2. Click your username (top right) → **Security credentials**
+3. Scroll to **Access keys** section → **Create access key**
+4. Choose use case: **Command Line Interface (CLI)**
+5. Save both the **Access Key ID** and **Secret Access Key** (secret key only shown once!)
+
+**Verify credentials work:**
+```bash
+aws sts get-caller-identity
+```
+
+Expected output: Your AWS account ID and user ARN
+
+**Note:** If using temporary credentials (AWS SSO), they expire periodically and you'll need to re-authenticate.
 
 **Docker:**
 - Docker Desktop installed and running
@@ -34,6 +53,61 @@ aws configure
 
 - Working directory: `/Users/msgroi/Documents/d/github/Scraper` (project root)
 - Terraform initialized: `cd terraform/ && terraform init` (run once after cloning)
+
+---
+
+## Terraform Operations
+
+**Prerequisites:** AWS credentials must be configured (see Prerequisites section above).
+
+### Initialize Terraform (First Time Only)
+
+```bash
+cd terraform/
+terraform init
+```
+
+Run this once after cloning the repo or when Terraform configuration changes.
+
+### Preview Infrastructure Changes
+
+Before making any changes to AWS infrastructure, always preview what will happen:
+
+```bash
+cd terraform/
+terraform plan
+```
+
+This shows what resources would be created/modified/destroyed **without actually making changes**.
+
+**What to check:**
+- Review the resources that will be created/modified/destroyed
+- Verify region is `us-west-2`
+- Check resource names match expectations
+- Look for `Plan: X to add, Y to change, Z to destroy`
+
+**Troubleshooting:**
+- **Error: ExpiredToken** → Run `aws configure` to refresh credentials
+- **Error: No credentials** → Run `aws configure` to set up credentials
+- **Wrong region** → Ensure you set `us-west-2` in `aws configure`
+
+### Apply Infrastructure Changes
+
+After reviewing the plan, apply the changes to create/update AWS resources:
+
+```bash
+cd terraform/
+terraform apply
+```
+
+Type `yes` when prompted to confirm.
+
+**Save the outputs** - You'll need the ECR URL for pushing Docker images.
+
+**Verify deployment:**
+```bash
+make test-infra
+```
 
 ---
 
@@ -48,18 +122,12 @@ See [infra_devplan.md](infra_devplan.md) for the complete initial setup process 
 When you modify the scraper code:
 
 ```bash
-# 1. Build Docker image
-docker build -t scraper .
+# Build and push Docker image to ECR
+make push
 
-# 2. Tag for ECR
-ECR_URL=$(cd terraform && terraform output -raw ecr_repository_url)
-docker tag scraper:latest $ECR_URL:latest
-
-# 3. Push to ECR
-docker push $ECR_URL:latest
-
-# 4. Update Lambda function
+# Update Lambda function with new image
 LAMBDA_NAME=$(cd terraform && terraform output -raw lambda_function_name)
+ECR_URL=$(cd terraform && terraform output -raw ecr_repository_url)
 aws lambda update-function-code \
   --function-name $LAMBDA_NAME \
   --image-uri $ECR_URL:latest
@@ -144,49 +212,20 @@ aws events describe-rule --name scraper-hourly
 
 ## Testing
 
-### Manual Lambda Invocation
+### Verify Lambda Deployment
 
-Trigger Lambda manually (useful for testing changes):
-
-```bash
-# Invoke Lambda
-aws lambda invoke \
-  --function-name $(cd terraform && terraform output -raw lambda_function_name) \
-  --payload '{}' \
-  response.json
-
-# Check response
-cat response.json
-
-# Should see: {"statusCode": 200, "body": "..."}
-```
-
-### Verify End-to-End
-
-Complete test from invocation to S3 output:
+Run automated infrastructure tests to verify the Lambda deployment:
 
 ```bash
-# 1. Note current time
-date
-
-# 2. Invoke Lambda
-aws lambda invoke \
-  --function-name $(cd terraform && terraform output -raw lambda_function_name) \
-  --payload '{}' \
-  response.json
-
-# 3. Check response
-cat response.json
-
-# 4. View logs
-aws logs tail /aws/lambda/$(cd terraform && terraform output -raw lambda_function_name) --since 5m
-
-# 5. Check S3 for new files
-aws s3 ls s3://$(cd terraform && terraform output -raw s3_bucket_name)/data/ --human-readable
-
-# 6. Verify CSV contents
-aws s3 cp s3://$(cd terraform && terraform output -raw s3_bucket_name)/data/status_*.csv - | head
+make test-infra
 ```
+
+This will verify:
+- ECR repository exists
+- Docker image is in ECR
+- Lambda function is configured correctly
+- Lambda invocation works
+- CloudWatch logging is functioning
 
 ---
 
@@ -373,12 +412,12 @@ Update Python packages in `requirements.txt`, then redeploy:
 ```bash
 # Update requirements.txt
 # Then rebuild and redeploy
-docker build -t scraper .
-docker tag scraper:latest $(cd terraform && terraform output -raw ecr_repository_url):latest
-docker push $(cd terraform && terraform output -raw ecr_repository_url):latest
+make push
+LAMBDA_NAME=$(cd terraform && terraform output -raw lambda_function_name)
+ECR_URL=$(cd terraform && terraform output -raw ecr_repository_url)
 aws lambda update-function-code \
-  --function-name $(cd terraform && terraform output -raw lambda_function_name) \
-  --image-uri $(cd terraform && terraform output -raw ecr_repository_url):latest
+  --function-name $LAMBDA_NAME \
+  --image-uri $ECR_URL:latest
 ```
 
 ### Clean Up Old S3 Files

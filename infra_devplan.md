@@ -239,7 +239,7 @@ aws s3 ls s3://$(terraform output -raw s3_bucket_name)/timestamps/
 
 Replace `hello.py` with `scraper.py`:
 - Import: `boto3`, `pandas`, `requests`, `os`, `datetime`
-- `fetch_json_from_url(url)` - fetch from Palisades APIs
+- `fetch_json_from_url(url)` - fetch from resort APIs
 - `scrape_lift_data()` - parse JSON, extract lift info
 - `upload_to_s3(df, bucket, key)` - upload DataFrame as CSV to S3
 - `lambda_handler(event, context)` - orchestrate scraping and upload

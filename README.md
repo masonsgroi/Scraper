@@ -1,10 +1,10 @@
-# Palisades Scraper
+# Ski Resort Scraper
 
-Automated web scraper for Palisades Tahoe ski resort lift and trail data, deployed on AWS Lambda.
+Automated web scraper for ski resort lift and trail data, deployed on AWS Lambda.
 
 ## Overview
 
-This project scrapes lift status and wait time data from Palisades Tahoe website, stores the data in S3, and runs automatically on a schedule using AWS Lambda.
+This project scrapes lift status and wait time data from a ski resort website, stores the data in S3, and runs automatically on a schedule using AWS Lambda.
 
 **Architecture**: AWS Lambda (Docker container) + EventBridge (scheduler) + S3 (storage)
 
@@ -79,6 +79,14 @@ make test
 This will:
 - Run unit tests for the Lambda handler
 - Build the Docker image and test it locally with the Lambda runtime emulator
+
+### Building Docker Image
+
+Build the Docker image locally:
+
+```bash
+make build
+```
 
 ### Cleaning Up
 

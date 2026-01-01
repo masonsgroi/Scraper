@@ -2,13 +2,13 @@
 
 ## Purpose
 
-Collect lift status and wait time data from Palisades Tahoe ski resort at regular intervals.
+Collect lift status and wait time data from a ski resort at regular intervals.
 
 ---
 
 ## What It Does
 
-1. **Fetches** lift and trail data from Palisades Tahoe APIs
+1. **Fetches** lift and trail data from ski resort APIs
 2. **Extracts** lift names, operational status, and wait times
 3. **Writes** data to CSV files with timestamps
 4. **Stores** CSV files in S3 for historical analysis
@@ -18,8 +18,8 @@ Collect lift status and wait time data from Palisades Tahoe ski resort at regula
 ## Data Sources
 
 ### API Endpoints
-- **Alpine Meadows**: `https://vicomap-cdn.resorts-interactive.com/api/maps/152`
-- **Palisades Tahoe**: `https://vicomap-cdn.resorts-interactive.com/api/maps/1446`
+- **Map 152**: `https://vicomap-cdn.resorts-interactive.com/api/maps/152`
+- **Resort API**: `https://vicomap-cdn.resorts-interactive.com/api/maps/1446`
 
 ### Data Format
 Both APIs return JSON with a `lifts` array containing:
@@ -58,7 +58,7 @@ Gold Coast,10
 ## Data Flow
 
 ```
-Palisades APIs → Scraper → CSV Files → S3 Bucket
+Resort APIs → Scraper → CSV Files → S3 Bucket
 ```
 
 1. Scraper calls both API endpoints

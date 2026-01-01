@@ -1,13 +1,13 @@
 # Infrastructure Work Tracker
 
-### Phase 1: Hello World Lambda
+### Phase 1: Hello World Lambda ✅
 - [x] Step 1.1: Create Hello World Python Script
 - [x] Step 1.2: Create Lambda-compatible Dockerfile
-- [ ] Step 1.3: Create Minimal Terraform Configuration
-- [ ] Step 1.4: Deploy Infrastructure
-- [ ] Step 1.5: Build and Push Docker Image
-- [ ] Step 1.6: Update Lambda with Image
-- [ ] Step 1.7: Test Lambda Function
+- [x] Step 1.3: Create Minimal Terraform Configuration
+- [x] Step 1.4: Deploy Infrastructure
+- [x] Step 1.5: Build and Push Docker Image
+- [x] Step 1.6: Update Lambda with Image
+- [x] Step 1.7: Test Lambda Function
 
 ### Phase 2: Add Scheduling
 - [ ] Step 2.1: Update Terraform Configuration

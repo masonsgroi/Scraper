@@ -2,7 +2,7 @@
 pytest>=7.4.0
 requests>=2.31.0
 urllib3<2.0.0  # Pin to v1.x for LibreSSL compatibility on macOS
+boto3>=1.34.0  # For infrastructure tests and Lambda (Phase 4)
 
 # Future Lambda dependencies (Phase 4)
-# boto3
 # pandas

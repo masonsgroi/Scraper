@@ -6,7 +6,7 @@ Step-by-step guide to building the scraper functionality incrementally.
 
 ## Phase 1: Fetch Data from One API
 
-**Goal**: Successfully retrieve JSON data from one Palisades API endpoint.
+**Goal**: Successfully retrieve JSON data from one resort API endpoint.
 
 ### Step 1.1: Create Basic Script
 
@@ -53,7 +53,7 @@ python scraper.py
 
 ## Phase 3: Add Second API
 
-**Goal**: Fetch and combine data from both Palisades API endpoints.
+**Goal**: Fetch and combine data from both resort API endpoints.
 
 ### Step 3.1: Fetch from Both APIs
 
@@ -64,8 +64,8 @@ Add `scrape_all_lifts()` function:
 - Return combined data
 
 **API endpoints**:
-- Alpine Meadows: `https://vicomap-cdn.resorts-interactive.com/api/maps/152`
-- Palisades Tahoe: `https://vicomap-cdn.resorts-interactive.com/api/maps/1446`
+- Map 152: `https://vicomap-cdn.resorts-interactive.com/api/maps/152`
+- Resort API: `https://vicomap-cdn.resorts-interactive.com/api/maps/1446`
 
 ### Step 3.2: Test
 
