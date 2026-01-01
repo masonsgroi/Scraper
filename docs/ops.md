@@ -30,7 +30,7 @@ aws configure
 ```
 
 **How to get AWS credentials:**
-1. Log into [AWS Console](https://console.aws.amazon.com/)
+1. Log into AWS Console (see README for login URL)
 2. Click your username (top right) → **Security credentials**
 3. Scroll to **Access keys** section → **Create access key**
 4. Choose use case: **Command Line Interface (CLI)**

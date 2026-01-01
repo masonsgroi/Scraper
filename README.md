@@ -8,6 +8,19 @@ This project scrapes lift status and wait time data from a ski resort website, s
 
 **Architecture**: AWS Lambda (Docker container) + EventBridge (scheduler) + S3 (storage)
 
+## Quick Links
+
+**AWS Console:**
+- 🌐 [AWS Account Login](https://248190629440.signin.aws.amazon.com/console)
+
+**Quick Commands:**
+- 📦 `make s3` - Open S3 bucket with scraped CSV files
+- 📊 `make logs` - Tail Lambda execution logs in real-time
+- 🚀 `make build-push` - Build and deploy code changes to Lambda
+- ✅ `make test` - Run unit tests locally
+- 🧪 `make test-live` - Test scraper against live API
+- 🔧 `make test-infra` - Verify AWS infrastructure deployment
+
 ## Project Structure
 
 ```
