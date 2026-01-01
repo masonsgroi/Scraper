@@ -1,130 +1,53 @@
-# Dog Breed Classification Project
+# Palisades Scraper
 
-A machine learning project for identifying dog breeds from images using TensorFlow/Keras.
+Automated web scraper for Palisades Tahoe ski resort lift and trail data, deployed on AWS Lambda.
+
+## Overview
+
+This project scrapes lift status and wait time data from Palisades Tahoe website, stores the data in S3, and runs automatically on a schedule using AWS Lambda.
+
+**Architecture**: AWS Lambda (Docker container) + EventBridge (scheduler) + S3 (storage)
 
 ## Project Structure
 
 ```
-sf_coding_class_project/
-├── model_interface.py      # Main classification script
-├── labels.csv             # Dog breed labels
-├── dog_pictures/          # Test images organized by breed
-├── public/                # Web interface files
-├── Dockerfile             # Docker configuration
-├── docker-compose.yml     # Docker Compose configuration
-├── requirements.txt       # Python dependencies
-├── scripts/               # Helper scripts
-└── README.md             # This file
+Scraper/
+├── web_scraper2.py         # Main scraper logic
+├── Dockerfile              # Lambda-compatible Docker image
+├── requirements.txt        # Python dependencies
+├── terraform/              # Infrastructure as code
+│   └── main.tf            # AWS resources definition
+├── docs/                   # Documentation
+│   ├── scraper_design.md  # What the scraper does
+│   ├── scraper_devplan.md # Building the scraper (phases 1-5)
+│   ├── hosting.md         # Hosting evaluation & decision
+│   ├── infra_design.md    # Architecture & design decisions
+│   ├── infra_devplan.md   # Infrastructure deployment (phases 1-4)
+│   └── ops.md             # Operations guide
+└── README.md              # This file
 ```
 
-## Quick Start with Docker
+## Documentation
 
-### Prerequisites
+### 📊 Scraper Design
+- **[scraper_design.md](docs/scraper_design.md)** - What the scraper does and how it works
+- **[scraper_devplan.md](docs/scraper_devplan.md)** - Step-by-step guide to building the scraper incrementally
 
-- Docker installed on your system
-- Docker Compose (usually comes with Docker Desktop)
+### 📋 Hosting
+- **[hosting.md](docs/hosting.md)** - Requirements, options evaluated, and why AWS Lambda was selected
 
-### Option 1: Using Docker Compose (Recommended)
+### 🏗️ Infrastructure
+- **[infra_design.md](docs/infra_design.md)** - Architecture overview and components
+- **[infra_devplan.md](docs/infra_devplan.md)** - Step-by-step deployment guide with 4 incremental phases
 
-1. **Build and run the main service:**
-   ```bash
-   docker compose up dog-breed-classifier
-   ```
+### 🔧 Operations
+- **[ops.md](docs/ops.md)** - Day-to-day operations including deployment, monitoring, testing, and troubleshooting
 
-2. **Run with Jupyter Lab for development:**
-   ```bash
-   docker compose up jupyter
-   ```
-   Then open http://localhost:8888 in your browser.
+## Getting Started
 
-3. **Run all services:**
-   ```bash
-   docker compose up
-   ```
-
-### Option 2: Using Docker directly
-
-**On Linux/Mac:**
-```bash
-chmod +x scripts/run_docker.sh
-./scripts/run_docker.sh
-```
-
-**On Windows (PowerShell):**
-```powershell
-.\scripts\run_docker.ps1
-```
-
-**Manual Docker commands:**
-```bash
-# Build the image
-docker build -t dog-breed-classifier .
-
-# Run the container and execute model_interface.py
-docker run --rm -it -v "$(pwd)":/app dog-breed-classifier python model_interface.py
-
-## Development Setup
-
-### Local Python Environment
-
-1. **Create a virtual environment:**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Run the model:**
-   ```bash
-   python model_interface.py
-   ```
-
-## Model Requirements
-
-The project expects:
-- A trained model in the `./model/` directory
-- A `labels.csv` file with breed labels
-- Test images in the `dog_pictures/` directory
-
-## Features
-
-- **Consistent Environment**: Docker ensures the same environment across different machines
-- **Virtual Environment**: Python virtual environment isolated within the container
-- **Volume Mounting**: Easy access to local files without copying them into the container
-- **Development Tools**: Optional Jupyter Lab for interactive development
-- **Cross-Platform**: Works on Windows, Mac, and Linux
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Model not found**: Ensure you have a trained model in the `./model/` directory
-2. **Permission errors**: Make sure Docker has access to your project directory
-3. **Port conflicts**: Change the port mapping in docker-compose.yml if port 8000 is in use
-
-### Docker Commands
-
-```bash
-# View running containers
-docker ps
-
-# View logs
-docker logs dog-breed-classifier
-
-# Stop all containers
-docker compose down
-
-# Remove all images
-docker system prune -a
-```
-
-## Contributing
-
-1. Make changes to your code
-2. Rebuild the Docker image: `docker-compose build`
-3. Test your changes: `docker-compose up`
+1. Read [scraper_design.md](docs/scraper_design.md) to understand what the scraper does
+2. Follow [scraper_devplan.md](docs/scraper_devplan.md) to build the scraper locally (optional)
+3. Review [infra_design.md](docs/infra_design.md) to understand the architecture
+4. Follow [infra_devplan.md](docs/infra_devplan.md) for step-by-step deployment to AWS
+5. Use [ops.md](docs/ops.md) for day-to-day operations
 
