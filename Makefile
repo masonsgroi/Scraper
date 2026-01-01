@@ -1,4 +1,4 @@
-.PHONY: setup test test-infra test-live build push clean logs
+.PHONY: setup test test-infra test-live build push build-push clean logs s3
 
 # Install local development dependencies
 setup:
@@ -49,6 +49,9 @@ push: build
 	aws lambda wait function-updated --function-name $$LAMBDA_NAME --region us-west-2; \
 	echo "✅ Lambda function is ready"
 
+# Alias for push (builds and pushes in one command)
+build-push: push
+
 # Clean up Docker images and containers
 clean:
 	@echo "Cleaning up Docker resources..."
@@ -61,3 +64,10 @@ clean:
 logs:
 	@LAMBDA_NAME=$$(cd terraform && terraform output -raw lambda_function_name); \
 	aws logs tail /aws/lambda/$$LAMBDA_NAME --follow
+
+# Open S3 data folder in browser
+s3:
+	@BUCKET=$$(cd terraform && terraform output -raw s3_bucket_name); \
+	URL="https://s3.console.aws.amazon.com/s3/buckets/$$BUCKET?prefix=data/&region=us-west-2"; \
+	echo "Opening S3 browser at: $$URL"; \
+	open "$$URL"
