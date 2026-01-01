@@ -277,15 +277,14 @@ def test_s3_file_content():
     # Wait a moment for S3 to be consistent
     time.sleep(2)
     
-    # List files in data/ folder to find the most recent ones
+    # List files in bucket to find the most recent ones
     try:
         list_response = s3_client.list_objects_v2(
             Bucket=bucket_name,
-            Prefix='data/',
             MaxKeys=10
         )
         
-        assert 'Contents' in list_response, "No files found in data/ folder"
+        assert 'Contents' in list_response, "No files found in bucket"
         
         # Get the most recent status file
         status_files = [obj for obj in list_response['Contents'] if 'status_' in obj['Key']]

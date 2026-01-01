@@ -65,9 +65,9 @@ logs:
 	@LAMBDA_NAME=$$(cd terraform && terraform output -raw lambda_function_name); \
 	aws logs tail /aws/lambda/$$LAMBDA_NAME --follow
 
-# Open S3 data folder in browser
+# Open S3 bucket in browser
 s3:
 	@BUCKET=$$(cd terraform && terraform output -raw s3_bucket_name); \
-	URL="https://s3.console.aws.amazon.com/s3/buckets/$$BUCKET?prefix=data/&region=us-west-2"; \
+	URL="https://s3.console.aws.amazon.com/s3/buckets/$$BUCKET?region=us-west-2"; \
 	echo "Opening S3 browser at: $$URL"; \
 	open "$$URL"

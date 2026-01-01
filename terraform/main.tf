@@ -3,6 +3,13 @@ provider "aws" {
   region = "us-west-2"
 }
 
+# Variables
+variable "bucket_name" {
+  description = "S3 bucket name suffix (will be prefixed with AWS account ID)"
+  type        = string
+  default     = "scraper-output-1"
+}
+
 # Data source for current AWS account ID
 data "aws_caller_identity" "current" {}
 
@@ -53,7 +60,7 @@ resource "aws_iam_role_policy_attachment" "lambda_admin" {
 
 # S3 Bucket for scraper output
 resource "aws_s3_bucket" "scraper_output" {
-  bucket = "scraper-output-${data.aws_caller_identity.current.account_id}"
+  bucket = "${data.aws_caller_identity.current.account_id}-${var.bucket_name}"
 
   tags = {
     Name    = "scraper-output"

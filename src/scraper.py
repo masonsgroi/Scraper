@@ -118,14 +118,14 @@ def lambda_handler(event, context):
         status_df, wait_time_df = scrape_lift_data()
         
         # Generate S3 keys
-        status_key = f"data/status_{timestamp}.csv"
-        wait_time_key = f"data/wait_time_{timestamp}.csv"
+        status_key = f"status_{timestamp}.csv"
+        wait_time_key = f"wait_time_{timestamp}.csv"
         
         # Upload to S3
         upload_df_to_s3(status_df, bucket_name, status_key)
         upload_df_to_s3(wait_time_df, bucket_name, wait_time_key)
         
-        success_msg = f"Scraper completed. Uploaded {len(status_df)} lifts to s3://{bucket_name}/data/"
+        success_msg = f"Scraper completed. Uploaded {len(status_df)} lifts to s3://{bucket_name}/"
         print(success_msg)
         
         return {
