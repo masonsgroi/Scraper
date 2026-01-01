@@ -51,6 +51,16 @@ resource "aws_iam_role_policy_attachment" "lambda_admin" {
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
+# S3 Bucket for scraper output
+resource "aws_s3_bucket" "scraper_output" {
+  bucket = "scraper-output-${data.aws_caller_identity.current.account_id}"
+
+  tags = {
+    Name    = "scraper-output"
+    Project = "scraper"
+  }
+}
+
 # Lambda Function
 resource "aws_lambda_function" "scraper" {
   function_name = "scraper"
@@ -59,6 +69,12 @@ resource "aws_lambda_function" "scraper" {
   image_uri     = "${aws_ecr_repository.scraper.repository_url}:latest"
   timeout       = 60
   memory_size   = 512
+
+  environment {
+    variables = {
+      S3_BUCKET = aws_s3_bucket.scraper_output.id
+    }
+  }
 
   tags = {
     Name    = "scraper"
@@ -113,5 +129,10 @@ output "lambda_function_name" {
 output "eventbridge_rule_name" {
   description = "Name of the EventBridge rule"
   value       = aws_cloudwatch_event_rule.scraper_hourly.name
+}
+
+output "s3_bucket_name" {
+  description = "Name of the S3 bucket for scraper output"
+  value       = aws_s3_bucket.scraper_output.id
 }
 

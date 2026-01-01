@@ -87,10 +87,14 @@ def test_lambda_invocation():
     # Parse and validate response payload
     payload = json.loads(response['Payload'].read())
     assert payload['statusCode'] == 200, f"Expected statusCode 200, got {payload['statusCode']}"
-    assert payload['body'] == 'Hello World!', f"Expected 'Hello World!', got '{payload['body']}'"
+    
+    # Check that response indicates S3 write success
+    bucket_name = get_terraform_output('s3_bucket_name')
+    assert f'Timestamp written to s3://{bucket_name}/timestamps/' in payload['body'], \
+        f"Expected S3 write success message, got '{payload['body']}'"
     
     print("✅ Lambda function invoked successfully")
-    print(f"   Response: {payload}")
+    print(f"   Response: {payload['body']}")
 
 
 def test_lambda_logs():
@@ -122,10 +126,11 @@ def test_lambda_logs():
             limit=50
         )
         
-        # Check for our expected log message
+        # Check for our expected log message (S3 write success)
         log_messages = [event['message'] for event in events_response['events']]
-        assert any('Hello World from Lambda!' in msg for msg in log_messages), \
-            "Expected log message 'Hello World from Lambda!' not found in CloudWatch logs"
+        bucket_name = get_terraform_output('s3_bucket_name')
+        assert any(f'Timestamp written to s3://{bucket_name}/timestamps/' in msg for msg in log_messages), \
+            "Expected log message about S3 write not found in CloudWatch logs"
         
         print("✅ Lambda function logs to CloudWatch correctly")
         
@@ -206,6 +211,95 @@ def test_lambda_eventbridge_permission():
         raise
 
 
+def test_s3_bucket_exists():
+    """Test that S3 bucket exists"""
+    s3_client = boto3.client('s3', region_name='us-west-2')
+    
+    # Get bucket name from Terraform output
+    bucket_name = get_terraform_output('s3_bucket_name')
+    
+    try:
+        response = s3_client.head_bucket(Bucket=bucket_name)
+        print(f"✅ S3 bucket exists: {bucket_name}")
+        
+    except ClientError as e:
+        error_code = e.response['Error']['Code']
+        if error_code == '404':
+            raise AssertionError(f"S3 bucket '{bucket_name}' not found")
+        raise
+
+
+def test_lambda_has_s3_environment_variable():
+    """Test that Lambda has S3_BUCKET environment variable set"""
+    lambda_client = boto3.client('lambda', region_name='us-west-2')
+    
+    try:
+        response = lambda_client.get_function_configuration(FunctionName='scraper')
+        
+        env_vars = response.get('Environment', {}).get('Variables', {})
+        assert 'S3_BUCKET' in env_vars, "S3_BUCKET environment variable not set"
+        
+        bucket_name = env_vars['S3_BUCKET']
+        expected_bucket = get_terraform_output('s3_bucket_name')
+        
+        assert bucket_name == expected_bucket, \
+            f"S3_BUCKET mismatch: expected '{expected_bucket}', got '{bucket_name}'"
+        
+        print(f"✅ Lambda has S3_BUCKET environment variable: {bucket_name}")
+        
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ResourceNotFoundException':
+            raise AssertionError("Lambda function 'scraper' not found")
+        raise
+
+
+def test_s3_file_content():
+    """Test that Lambda writes correct content to S3 and verify by downloading"""
+    lambda_client = boto3.client('lambda', region_name='us-west-2')
+    s3_client = boto3.client('s3', region_name='us-west-2')
+    
+    bucket_name = get_terraform_output('s3_bucket_name')
+    
+    # Invoke Lambda to create a new timestamp file
+    response = lambda_client.invoke(
+        FunctionName='scraper',
+        InvocationType='RequestResponse',
+        Payload=json.dumps({})
+    )
+    
+    # Parse response to get the S3 key
+    payload = json.loads(response['Payload'].read())
+    assert payload['statusCode'] == 200, f"Lambda invocation failed: {payload}"
+    
+    # Extract S3 key from response body
+    # Example: "Timestamp written to s3://bucket-name/timestamps/2026-01-01T19:57:55.012744+00:00.txt"
+    body = payload['body']
+    assert 'timestamps/' in body, f"Expected S3 path in response, got: {body}"
+    
+    # Extract key from the message
+    s3_key = body.split('timestamps/')[1].split('"')[0].strip()
+    s3_key = f"timestamps/{s3_key}"
+    
+    # Download the file from S3
+    try:
+        obj_response = s3_client.get_object(Bucket=bucket_name, Key=s3_key)
+        file_content = obj_response['Body'].read().decode('utf-8')
+        
+        # Verify content is a valid ISO format timestamp
+        assert len(file_content) > 0, "File content is empty"
+        assert 'T' in file_content, "Content doesn't look like an ISO timestamp"
+        assert file_content.strip() in s3_key, \
+            f"Timestamp in file '{file_content.strip()}' doesn't match key '{s3_key}'"
+        
+        print(f"✅ S3 file verified: {s3_key}")
+        print(f"   Content: {file_content.strip()}")
+        
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'NoSuchKey':
+            raise AssertionError(f"S3 file not found: {s3_key}")
+        raise
+
+
 if __name__ == "__main__":
     print("Running infrastructure tests...\n")
     
@@ -218,6 +312,9 @@ if __name__ == "__main__":
         test_eventbridge_rule_exists()
         test_eventbridge_target_configured()
         test_lambda_eventbridge_permission()
+        test_s3_bucket_exists()
+        test_lambda_has_s3_environment_variable()
+        test_s3_file_content()
         
         print("\n🎉 All infrastructure tests passed!")
     except Exception as e:

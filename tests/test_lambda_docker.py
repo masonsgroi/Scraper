@@ -30,10 +30,14 @@ def test_lambda_docker_image():
         )
         assert result.returncode == 0, f"Docker build failed: {result.stderr}"
         
-        # Start the container
+        # Start the container with S3_BUCKET and dummy AWS credentials
         print("Starting Lambda container...")
         result = subprocess.run(
-            ["docker", "run", "--rm", "-d", "-p", f"{port}:8080", 
+            ["docker", "run", "--rm", "-d", "-p", f"{port}:8080",
+             "-e", "S3_BUCKET=test-bucket",
+             "-e", "AWS_ACCESS_KEY_ID=test",
+             "-e", "AWS_SECRET_ACCESS_KEY=test",
+             "-e", "AWS_DEFAULT_REGION=us-west-2",
              "--name", container_name, image_name],
             capture_output=True,
             text=True
@@ -52,16 +56,20 @@ def test_lambda_docker_image():
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
         
         response_data = response.json()
-        assert response_data["statusCode"] == 200, f"Lambda returned statusCode {response_data['statusCode']}"
-        assert response_data["body"] == "Hello World!", f"Unexpected body: {response_data['body']}"
+        # With dummy credentials, S3 call will fail, so we expect 500
+        # The important thing is the Lambda container runs and handles errors gracefully
+        assert response_data["statusCode"] == 500, f"Lambda returned statusCode {response_data['statusCode']}"
+        assert "Failed to write to S3:" in response_data["body"], \
+            f"Expected S3 error in body, got: {response_data['body']}"
         
-        # Check container logs
+        # Check container logs - should show the error was logged
         result = subprocess.run(
             ["docker", "logs", container_name],
             capture_output=True,
             text=True
         )
-        assert "Hello World from Lambda!" in result.stdout, "Expected log message not found"
+        assert "ERROR: Failed to write to S3:" in result.stdout, \
+            "Expected error log message not found"
         
         print("✅ Lambda Docker test passed")
         

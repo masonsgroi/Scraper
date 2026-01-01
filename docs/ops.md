@@ -122,18 +122,15 @@ See [infra_devplan.md](infra_devplan.md) for the complete initial setup process 
 When you modify the scraper code:
 
 ```bash
-# Build and push Docker image to ECR
+# Build, push Docker image to ECR, and update Lambda function
 make push
-
-# Update Lambda function with new image
-LAMBDA_NAME=$(cd terraform && terraform output -raw lambda_function_name)
-ECR_URL=$(cd terraform && terraform output -raw ecr_repository_url)
-aws lambda update-function-code \
-  --function-name $LAMBDA_NAME \
-  --image-uri $ECR_URL:latest
 ```
 
-Wait 30-60 seconds for Lambda to update, then test.
+This command will:
+1. Build the Docker image
+2. Push it to ECR
+3. Update the Lambda function with the new image
+4. Wait for the Lambda function to be ready
 
 ### Infrastructure Changes (Terraform)
 
@@ -413,14 +410,8 @@ aws lambda get-policy --function-name $(cd terraform && terraform output -raw la
 Update Python packages in `requirements.txt`, then redeploy:
 
 ```bash
-# Update requirements.txt
-# Then rebuild and redeploy
+# Update requirements.txt, then rebuild and redeploy
 make push
-LAMBDA_NAME=$(cd terraform && terraform output -raw lambda_function_name)
-ECR_URL=$(cd terraform && terraform output -raw ecr_repository_url)
-aws lambda update-function-code \
-  --function-name $LAMBDA_NAME \
-  --image-uri $ECR_URL:latest
 ```
 
 ### Clean Up Old S3 Files

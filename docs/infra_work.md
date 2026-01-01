@@ -14,12 +14,12 @@
 - [x] Step 2.2: Apply Terraform Changes
 - [x] Step 2.3: Verify Scheduled Execution
 
-### Phase 3: Write Timestamp to S3
-- [ ] Step 3.1: Update Python Script
-- [ ] Step 3.2: Update Dockerfile
-- [ ] Step 3.3: Update Terraform Configuration
-- [ ] Step 3.4: Apply Changes
-- [ ] Step 3.5: Verify S3 Output
+### Phase 3: Write Timestamp to S3 ✅
+- [x] Step 3.1: Update Python Script
+- [x] Step 3.2: Update Dockerfile (boto3 already in Lambda base image)
+- [x] Step 3.3: Update Terraform Configuration
+- [x] Step 3.4: Apply Changes
+- [x] Step 3.5: Verify S3 Output
 
 ### Phase 4: Integrate Full Scraper
 - [ ] Step 4.1: Update Python Script
