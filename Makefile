@@ -1,4 +1,4 @@
-.PHONY: setup test test-infra build push clean logs
+.PHONY: setup test test-infra test-live build push clean logs
 
 # Install local development dependencies
 setup:
@@ -11,6 +11,10 @@ test:
 # Run infrastructure tests (AWS deployment verification)
 test-infra:
 	python3 -m pytest tests/test_infra.py -v -s
+
+# Test scraper against live API (no mocks)
+test-live:
+	python3 test_scraper_live.py
 
 # Build Docker image for Lambda
 build:
