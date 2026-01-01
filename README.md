@@ -52,10 +52,39 @@ Scraper/
 ## Local Development Setup
 
 ### Prerequisites
-- Python 3.9+
+- **Python 3.12+** (recommended) or Python 3.10+ minimum
 - Docker
 - AWS CLI (for deployment)
 - Terraform (for infrastructure)
+
+**Note:** Python 3.9 is still functional but will lose boto3 support in April 2026. Use Python 3.12+ to avoid deprecation warnings.
+
+#### Installing Python 3.12 with pyenv (recommended)
+
+If you don't have Python 3.12+, use pyenv to install it:
+
+```bash
+# Install pyenv (macOS)
+brew install pyenv
+
+# Add pyenv to your shell (one time setup)
+echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.zshrc
+echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc
+echo 'eval "$(pyenv init --path)"' >> ~/.zshrc
+echo 'eval "$(pyenv init -)"' >> ~/.zshrc
+
+# Restart your terminal or run:
+source ~/.zshrc
+
+# Install Python 3.12
+pyenv install 3.12.12
+
+# Set it globally
+pyenv global 3.12.12
+
+# Verify
+python3 --version  # Should show Python 3.12.12
+```
 
 ### Setup
 
@@ -71,7 +100,7 @@ This installs:
 
 ### Running Tests
 
-Run all tests (unit + integration):
+Run unit tests:
 ```bash
 make test
 ```
@@ -79,6 +108,11 @@ make test
 This will:
 - Run unit tests for the Lambda handler
 - Build the Docker image and test it locally with the Lambda runtime emulator
+
+Run infrastructure tests (requires AWS deployment):
+```bash
+make test-infra
+```
 
 ### Building Docker Image
 

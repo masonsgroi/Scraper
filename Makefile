@@ -4,9 +4,9 @@
 setup:
 	pip3 install -r requirements.txt
 
-# Run all tests
+# Run unit tests only (excludes infrastructure tests)
 test:
-	python3 -m pytest -v
+	python3 -m pytest -v --ignore=tests/test_infra.py
 
 # Run infrastructure tests (AWS deployment verification)
 test-infra:
